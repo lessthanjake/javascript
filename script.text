@@ -1,0 +1,99 @@
+// ****************************************************************************
+// <p>Title: Reverse Order</p>
+// <p>Description: Reverse the order of images and pageXmls within the container</p>
+// <p>Author: rwille</p>
+// <p>Tooltip: This script first reverses the order of the images and changes the names to reordered_*. Then the pageXmls are reversed and pointed at the renamed image file. Image states are also reversed so that if an image was trashed it is still trashed.</p>
+//
+// ****************************************************************************
+
+
+// *** Problem categories ***
+//var problemMap = window.getNewProblemMap();
+
+
+        Packages.com.iarchives.jobq.db.DBImage.flushCache();
+        pipeline = db.getPipeline();
+        stages = pipeline.getAllStages();
+        
+        for (i = 0; i < containers.length; i++) {
+
+            if (containers.length > 1)
+                out.println("*** " + containers[i]);
+
+            cont = containers[i];
+
+            if (cont.getImages(db.getPipeline().createMask(db.getPipeline().getStatus("Trash.Split"))).length > 0)
+                exit(cont + " has split images");
+
+            images = cont.getImages();
+
+            java.util.Arrays.sort(images);
+
+            out.println("Checking XML Files");
+
+            nameMapping = new java.util.LinkedHashMap();
+            imagesToRename = new java.util.LinkedHashSet();
+            rawFiles = new java.util.HashSet();
+            imageMap = new java.util.HashMap();
+            imageState = new java.util.HashMap();
+
+            for (j = 0; j < images.length; j++) {
+                image = images[j];
+                name = image.getName();
+                imageMap.put(name, image);
+                imageState.put(name, image.getState());
+                destName = images[images.length - j - 1].getName();
+                nameMapping.put(name, destName);
+            }
+
+            for (j = 0; j < images.length; j++) {
+
+                image = images[j];
+                name = image.getName();
+
+                page = image.getPageXML();
+                
+                rawFile = page.getRawFile();
+
+                if (rawFile == null)
+                    exit(name + " does not reference a raw image");
+
+                imagesToRename.add(name);
+            }
+
+            out.println("Converting raw files");
+
+            paths = cont.getPaths();
+
+            rawDir = paths.getTypeDir("raw");
+
+            deleteMethod = rawDir.getClass().getMethod("delete", java.lang.reflect.Array.newInstance(rawDir.getClass().getClass(), 0));
+
+            raws = rawDir.listFiles();
+
+            java.util.Arrays.sort(raws);
+
+            failed = false;
+
+            for (j = 0; j < raws.length; j++) {
+
+                raw = raws[j];
+
+                if (raw.isFile()) {
+				
+                    rawName = raw.getName();
+				                    
+							
+				out.println("Processing " + rawName);
+
+				
+				cmd = "\"C:\Program Files\\gs\\gs9.20\\bin\\gswin64c.exe\" -q -dPDF -dNOPAUSE -sProcessColorModel=DeviceRGB -dUseCropBox -r300x300 -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=" + rawName + " " + rawName + " -c quit";
+				out.println("Running " + cmd);
+				//java.lang.Runtime.exec(cmd);                    
+                    
+                }
+            }
+
+            if (failed)
+                exit("Aborting prematurely due to rename failure(s)");
+        }
