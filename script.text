@@ -87,10 +87,18 @@
 				out.println("Processing " + rawName);
 
 				
-				cmd = "\"C:\\Program Files\\gs\\gs9.20\\bin\\gswin64c.exe\" -q -dPDF -dNOPAUSE -sProcessColorModel=DeviceRGB -dUseCropBox -r300x300 -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=" + rawName + " " + rawName + " -c quit";
+				cmd = "\"C:\\Program Files\\gs\\gs9.20\\bin\\gswin64c.exe\" -q -dPDF -dNOPAUSE -sProcessColorModel=DeviceRGB -dUseCropBox -r300x300 -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=temp.pdf " + rawName + " -c quit";
 				out.println("Running " + cmd);
 				p = java.lang.Runtime.getRuntime().exec(cmd);
-				p.waitFor();                    
+				p.waitFor();
+
+				out.println("Renaming -> Move stage" + rawName);
+
+				cmd2 = "move /y temp.pdf " + rawName;
+				p2 = java.lang.Runtime.getRuntime().exec(cmd2);
+				p2.waitFor();
+				out.println(cmd2);
+		                   
                     
                 }
             }
