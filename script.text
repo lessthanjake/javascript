@@ -87,9 +87,10 @@
 				out.println("Processing " + rawName);
 
 				
-				cmd = "\"C:\Program Files\\gs\\gs9.20\\bin\\gswin64c.exe\" -q -dPDF -dNOPAUSE -sProcessColorModel=DeviceRGB -dUseCropBox -r300x300 -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=" + rawName + " " + rawName + " -c quit";
+				cmd = "\"C:\\Program Files\\gs\\gs9.20\\bin\\gswin64c.exe\" -q -dPDF -dNOPAUSE -sProcessColorModel=DeviceRGB -dUseCropBox -r300x300 -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=" + rawName + " " + rawName + " -c quit";
 				out.println("Running " + cmd);
-				//java.lang.Runtime.exec(cmd);                    
+				p = java.lang.Runtime.getRuntime().exec(cmd);
+				p.waitFor();                    
                     
                 }
             }
