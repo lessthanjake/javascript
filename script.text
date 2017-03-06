@@ -2,7 +2,8 @@
 // <p>Title: PDF Remove White Border</p>
 // <p>Description: Destructively removes the White Border from raw borne digital PDFs with GhostScript (slowly)</p>
 // <p>Author: jharris</p>
-// <p>Tooltip: Since this script is executed on the local machine, Ghostscript must be installed</p>
+// <p>Tooltip: Since this script is executed on the local machine, Ghostscript 9.06 must be installed</p>
+// <p>Download it here https://sourceforge.net/projects/ghostscript/files/GPL%20Ghostscript/9.06/</p>
 //
 // ****************************************************************************
 
