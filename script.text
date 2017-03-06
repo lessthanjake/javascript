@@ -30,8 +30,9 @@ for (i = 0; i < containers.length; i++) {
 
     java.util.Arrays.sort(images);
 
+    out.println("Ghostscript must be installed on your machine: https://sourceforge.net/projects/ghostscript/files/GPL%20Ghostscript/9.06/");
     out.println("Checking XML Files");
-
+    
     nameMapping = new java.util.LinkedHashMap();
     imagesToRename = new java.util.LinkedHashSet();
     rawFiles = new java.util.HashSet();
@@ -88,7 +89,7 @@ for (i = 0; i < containers.length; i++) {
 
             out.println("Ghostscripting " + rawName);
 
-            cmd = "\"C:\\Program Files\\gs\\gs9.20\\bin\\gswin64c.exe\" -q -dPDF -dNOPAUSE -sProcessColorModel=DeviceRGB -dUseCropBox -r300x300 -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=" + rawDir + "\\" + newName + " " + rawDir + "\\" + rawName + " -c quit";
+            cmd = "\"C:\\Program Files\\gs\\gs9.06\\bin\\gswin64c.exe\" -q -dPDF -dNOPAUSE -sProcessColorModel=DeviceRGB -dUseCropBox -r300x300 -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=" + rawDir + "\\" + newName + " " + rawDir + "\\" + rawName + " -c quit";
             out.println("Running " + cmd);
             p = java.lang.Runtime.getRuntime().exec(cmd);
             p.waitFor();
