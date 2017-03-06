@@ -23,7 +23,7 @@ for (i = 0; i < containers.length; i++) {
     cont = containers[i];
 
     if (cont.getImages(db.getPipeline().createMask(db.getPipeline().getStatus("Trash.Split"))).length > 0)
-        exit(cont + " has split images, unsplit first");
+        exit(cont + " has split images");
 
     images = cont.getImages();
 
@@ -82,31 +82,25 @@ for (i = 0; i < containers.length; i++) {
 
         if (raw.isFile()) {
 
-            rawName = raw.getName();
+            var rawName = raw.getName();
+            var newName = rawName + "_tmp";
 
-            out.println("Processing " + rawName);
-	    
-	    // command to execute ghostscript to convert using the crop box to a temp.pdf file
-            cmd = "\"C:\\Program Files\\gs\\gs9.20\\bin\\gswin64c.exe\" -q -dPDF -dNOPAUSE -sProcessColorModel=DeviceRGB -dUseCropBox -r300x300 -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=" + rawDir + "\\temp.pdf " + rawDir + "\\" + rawName + " -c quit";
-            
-	    out.println("Running " + cmd);
+            out.println("Ghostscripting " + rawName);
+
+            cmd = "\"C:\\Program Files\\gs\\gs9.20\\bin\\gswin64c.exe\" -q -dPDF -dNOPAUSE -sProcessColorModel=DeviceRGB -dUseCropBox -r300x300 -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=" + rawDir + "\\" + newName + " " + rawDir + "\\" + rawName + " -c quit";
+            out.println("Running " + cmd);
             p = java.lang.Runtime.getRuntime().exec(cmd);
             p.waitFor();
 
-            out.println("Renaming -> Move stage " + rawName);
-	    
-	    oldFile = new java.io.File(rawDir + "\\temp.pdf");
-            newRenamed = new java.io.File(rawDir + "\\" + rawName);
-            
-	    // delete original pdf file
-	    newRenamed.delete();
-            
-	    // take temp.pdf file and rename to original pdf file name
-	    oldFile.renameTo(newRenamed);
-            
-	    // delete temp.pdf file
-	    oldFile.delete();
-            
+            out.println("Renaming/Moving temp file " + rawName);
+
+            newFile = new java.io.File(rawDir, newName);
+            out.println("About to rename new file: " + newFile.getAbsolutePath());
+            oldFile = new java.io.File(rawDir, rawName);
+            oldFile.delete();
+            var didRename = newFile.renameTo(oldFile);
+            out.println("Did it rename? " + didRename);
+            out.println("Renamed file: " + newFile.getName());
             
         }
     }
