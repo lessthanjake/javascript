@@ -1,8 +1,8 @@
 // ****************************************************************************
-// <p>Title: Reverse Order</p>
-// <p>Description: Reverse the order of images and pageXmls within the container</p>
-// <p>Author: rwille</p>
-// <p>Tooltip: This script first reverses the order of the images and changes the names to reordered_*. Then the pageXmls are reversed and pointed at the renamed image file. Image states are also reversed so that if an image was trashed it is still trashed.</p>
+// <p>Title: PDF Remove White Border</p>
+// <p>Description: Destructively removes the White Border from raw borne digital PDFs with GhostScript (slowly)</p>
+// <p>Author: jharris</p>
+// <p>Tooltip: Since this script is executed on the local machine, Ghostscript must be installed</p>
 //
 // ****************************************************************************
 
@@ -11,98 +11,106 @@
 //var problemMap = window.getNewProblemMap();
 
 
-        Packages.com.iarchives.jobq.db.DBImage.flushCache();
-        pipeline = db.getPipeline();
-        stages = pipeline.getAllStages();
-        
-        for (i = 0; i < containers.length; i++) {
+Packages.com.iarchives.jobq.db.DBImage.flushCache();
+pipeline = db.getPipeline();
+stages = pipeline.getAllStages();
 
-            if (containers.length > 1)
-                out.println("*** " + containers[i]);
+for (i = 0; i < containers.length; i++) {
 
-            cont = containers[i];
+    if (containers.length > 1)
+        out.println("*** " + containers[i]);
 
-            if (cont.getImages(db.getPipeline().createMask(db.getPipeline().getStatus("Trash.Split"))).length > 0)
-                exit(cont + " has split images");
+    cont = containers[i];
 
-            images = cont.getImages();
+    if (cont.getImages(db.getPipeline().createMask(db.getPipeline().getStatus("Trash.Split"))).length > 0)
+        exit(cont + " has split images, unsplit first");
 
-            java.util.Arrays.sort(images);
+    images = cont.getImages();
 
-            out.println("Checking XML Files");
+    java.util.Arrays.sort(images);
 
-            nameMapping = new java.util.LinkedHashMap();
-            imagesToRename = new java.util.LinkedHashSet();
-            rawFiles = new java.util.HashSet();
-            imageMap = new java.util.HashMap();
-            imageState = new java.util.HashMap();
+    out.println("Checking XML Files");
 
-            for (j = 0; j < images.length; j++) {
-                image = images[j];
-                name = image.getName();
-                imageMap.put(name, image);
-                imageState.put(name, image.getState());
-                destName = images[images.length - j - 1].getName();
-                nameMapping.put(name, destName);
-            }
+    nameMapping = new java.util.LinkedHashMap();
+    imagesToRename = new java.util.LinkedHashSet();
+    rawFiles = new java.util.HashSet();
+    imageMap = new java.util.HashMap();
+    imageState = new java.util.HashMap();
 
-            for (j = 0; j < images.length; j++) {
+    for (j = 0; j < images.length; j++) {
+        image = images[j];
+        name = image.getName();
+        imageMap.put(name, image);
+        imageState.put(name, image.getState());
+        destName = images[images.length - j - 1].getName();
+        nameMapping.put(name, destName);
+    }
 
-                image = images[j];
-                name = image.getName();
+    for (j = 0; j < images.length; j++) {
 
-                page = image.getPageXML();
-                
-                rawFile = page.getRawFile();
+        image = images[j];
+        name = image.getName();
 
-                if (rawFile == null)
-                    exit(name + " does not reference a raw image");
+        page = image.getPageXML();
 
-                imagesToRename.add(name);
-            }
+        rawFile = page.getRawFile();
 
-            out.println("Converting raw files");
+        if (rawFile == null)
+            exit(name + " does not reference a raw image");
 
-            paths = cont.getPaths();
+        imagesToRename.add(name);
+    }
 
-            rawDir = paths.getTypeDir("raw");
+    out.println("Converting raw files here:");
 
-            deleteMethod = rawDir.getClass().getMethod("delete", java.lang.reflect.Array.newInstance(rawDir.getClass().getClass(), 0));
+    paths = cont.getPaths();
+    
+    rawDir = paths.getTypeDir("raw");
+    out.println(rawDir);
 
-            raws = rawDir.listFiles();
+    deleteMethod = rawDir.getClass().getMethod("delete", java.lang.reflect.Array.newInstance(rawDir.getClass().getClass(), 0));
 
-            java.util.Arrays.sort(raws);
+    raws = rawDir.listFiles();
+    
+    java.util.Arrays.sort(raws);
 
-            failed = false;
+    failed = false;
 
-            for (j = 0; j < raws.length; j++) {
+    for (j = 0; j < raws.length; j++) {
 
-                raw = raws[j];
+        raw = raws[j];
 
-                if (raw.isFile()) {
-				
-                    rawName = raw.getName();
-				                    
-							
-				out.println("Processing " + rawName);
+        if (raw.isFile()) {
 
-				
-				cmd = "\"C:\\Program Files\\gs\\gs9.20\\bin\\gswin64c.exe\" -q -dPDF -dNOPAUSE -sProcessColorModel=DeviceRGB -dUseCropBox -r300x300 -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=temp.pdf " + rawName + " -c quit";
-				out.println("Running " + cmd);
-				p = java.lang.Runtime.getRuntime().exec(cmd);
-				p.waitFor();
+            rawName = raw.getName();
 
-				out.println("Renaming -> Move stage" + rawName);
+            out.println("Processing " + rawName);
+	    
+	    // command to execute ghostscript to convert using the crop box to a temp.pdf file
+            cmd = "\"C:\\Program Files\\gs\\gs9.20\\bin\\gswin64c.exe\" -q -dPDF -dNOPAUSE -sProcessColorModel=DeviceRGB -dUseCropBox -r300x300 -sDEVICE=pdfwrite -sPDFACompatibilityPolicy=1 -sOutputFile=" + rawDir + "\\temp.pdf " + rawDir + "\\" + rawName + " -c quit";
+            
+	    out.println("Running " + cmd);
+            p = java.lang.Runtime.getRuntime().exec(cmd);
+            p.waitFor();
 
-				cmd2 = "move /y temp.pdf " + rawName;
-				p2 = java.lang.Runtime.getRuntime().exec(cmd2);
-				p2.waitFor();
-				out.println(cmd2);
-		                   
-                    
-                }
-            }
-
-            if (failed)
-                exit("Aborting prematurely due to rename failure(s)");
+            out.println("Renaming -> Move stage " + rawName);
+	    
+	    oldFile = new java.io.File(rawDir + "\\temp.pdf");
+            newRenamed = new java.io.File(rawDir + "\\" + rawName);
+            
+	    // delete original pdf file
+	    newRenamed.delete();
+            
+	    // take temp.pdf file and rename to original pdf file name
+	    oldFile.renameTo(newRenamed);
+            
+	    // delete temp.pdf file
+	    oldFile.delete();
+            
+            
         }
+    }
+
+    if (failed)
+        exit("Aborting prematurely due to rename failure(s)");
+}
